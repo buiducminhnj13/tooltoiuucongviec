@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Trend Scanner - Phát Hiện Sản Phẩm Tăng Trưởng</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .dashboard {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        .trends-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .trends-table th,
+        .trends-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .trends-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .score-badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .score-high { background: #28a745; color: white; }
+        .score-medium { background: #ffc107; color: #333; }
+        .score-low { background: #dc3545; color: white; }
+
+        .saturation-badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .sat-low { background: #28a745; color: white; }
+        .sat-medium { background: #ffc107; color: #333; }
+        .sat-high { background: #fd7e14; color: white; }
+        .sat-very-high { background: #dc3545; color: white; }
+
+        .action-badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .action-test { background: #28a745; color: white; }
+        .action-monitor { background: #ffc107; color: #333; }
+        .action-skip { background: #dc3545; color: white; }
+        .action-angle { background: #17a2b8; color: white; }
+
+        .signals-details {
+            margin-top: 10px;
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .platform-signals {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .signal-item {
+            background: #f8f9fa;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+        }
+
+        .refresh-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: transform 0.2s;
+        }
+
+        .refresh-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .back-link {
+            display: inline-block;
+            color: white;
+            text-decoration: none;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 25px;
+            transition: background 0.3s;
+        }
+
+        .back-link:hover {
+            background: rgba(255,255,255,0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-link">← Quay lại trang chủ</a>
+
+        <div class="header">
+            <h1>🚀 AI Trend Scanner</h1>
+            <p>Phát hiện sản phẩm tăng trưởng từ TikTok, Facebook Ads & Shopee PH</p>
+        </div>
+
+        <div class="dashboard">
+            <button class="refresh-btn" onclick="location.reload()">🔄 Quét lại xu hướng</button>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">{{ trends|length }}</div>
+                    <div class="stat-label">Sản phẩm được quét</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ trends|selectattr('trend_score', 'greaterthan', 70)|list|length }}</div>
+                    <div class="stat-label">Sản phẩm hot (≥70 điểm)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ trends|selectattr('saturation', 'equalto', 'Low')|list|length }}</div>
+                    <div class="stat-label">Thị trường mới</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ trends|selectattr('suggested_action', 'equalto', 'Test ngay')|list|length }}</div>
+                    <div class="stat-label">Khuyến nghị test ngay</div>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table class="trends-table">
+                    <thead>
+                        <tr>
+                            <th>Sản phẩm</th>
+                            <th>Trend Score</th>
+                            <th>Saturation</th>
+                            <th>Suggested Action</th>
+                            <th>TikTok Signals</th>
+                            <th>FB Ads Signals</th>
+                            <th>Shopee Signals</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for trend in trends %}
+                        <tr>
+                            <td><strong>{{ trend.name }}</strong></td>
+                            <td>
+                                <span class="score-badge {% if trend.trend_score >= 80 %}score-high{% elif trend.trend_score >= 60 %}score-medium{% else %}score-low{% endif %}">
+                                    {{ trend.trend_score }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="saturation-badge sat-{{ trend.saturation.lower().replace(' ', '-') }}">
+                                    {{ trend.saturation }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="action-badge {% if 'Test ngay' in trend.suggested_action %}action-test{% elif 'Monitor' in trend.suggested_action %}action-monitor{% elif 'Skip' in trend.suggested_action %}action-skip{% else %}action-angle{% endif %}">
+                                    {{ trend.suggested_action }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="platform-signals">
+                                    {% if trend.tiktok_signals.video_views_growth %}
+                                    <span class="signal-item">📈 Views: {{ trend.tiktok_signals.video_views_growth }}%</span>
+                                    {% endif %}
+                                    {% if trend.tiktok_signals.creator_mentions %}
+                                    <span class="signal-item">👥 Creators: {{ trend.tiktok_signals.creator_mentions }}</span>
+                                    {% endif %}
+                                    {% if trend.tiktok_signals.buy_comments %}
+                                    <span class="signal-item">🛒 Buy comments: {{ trend.tiktok_signals.buy_comments }}</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="platform-signals">
+                                    {% if trend.fb_signals.running_days %}
+                                    <span class="signal-item">📅 Days: {{ trend.fb_signals.running_days }}</span>
+                                    {% endif %}
+                                    {% if trend.fb_signals.pages_running %}
+                                    <span class="signal-item">📄 Pages: {{ trend.fb_signals.pages_running }}</span>
+                                    {% endif %}
+                                    {% if trend.fb_signals.creative_changes %}
+                                    <span class="signal-item">🎨 Creative: {{ trend.fb_signals.creative_changes }}</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="platform-signals">
+                                    {% if trend.shopee_signals.sold_growth %}
+                                    <span class="signal-item">📦 Sold: {{ trend.shopee_signals.sold_growth }}%</span>
+                                    {% endif %}
+                                    {% if trend.shopee_signals.review_growth %}
+                                    <span class="signal-item">⭐ Reviews: {{ trend.shopee_signals.review_growth }}%</span>
+                                    {% endif %}
+                                    {% if trend.shopee_signals.avg_price %}
+                                    <span class="signal-item">💰 Price: ${{ trend.shopee_signals.avg_price }}</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Auto refresh every 5 minutes
+        setTimeout(() => {
+            location.reload();
+        }, 300000);
+    </script>
+</body>
+</html>

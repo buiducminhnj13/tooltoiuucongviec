@@ -1,11 +1,17 @@
 from flask import Flask, render_template, send_from_directory
 import os
+from trend_scanner import trend_analyzer
 
 app = Flask(__name__, static_folder='product-optimizer-website', static_url_path='')
 
 @app.route('/')
 def index():
     return send_from_directory('product-optimizer-website', 'index.html')
+
+@app.route('/trends')
+def trends_dashboard():
+    trends = trend_analyzer.scan_all_platforms()
+    return render_template('trends.html', trends=trends)
 
 @app.route('/<path:path>')
 def serve_file(path):
