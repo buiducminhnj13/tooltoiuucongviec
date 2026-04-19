@@ -2,6 +2,15 @@ import random
 import datetime
 from typing import List, Dict, Any
 from dataclasses import dataclass
+import os
+
+# Try to import real API scanners
+try:
+    from real_api_scanners import RealTikTokScanner, RealFacebookAdsScanner, RealShopeeScanner
+    REAL_APIS_AVAILABLE = True
+except ImportError:
+    REAL_APIS_AVAILABLE = False
+    print("⚠️  Real API modules not found, using mock data")
 
 @dataclass
 class ProductTrend:
@@ -55,9 +64,56 @@ class ShopeeScanner:
 
 class TrendAnalyzer:
     def __init__(self):
-        self.tiktok_scanner = TikTokScanner()
-        self.fb_scanner = FacebookAdsScanner()
-        self.shopee_scanner = ShopeeScanner()
+        # Try to use real APIs if available and credentials are set
+        use_real_apis = REAL_APIS_AVAILABLE and self._check_api_credentials()
+
+        if use_real_apis:
+            print("🚀 Using REAL APIs for trend scanning!")
+            self.tiktok_scanner = RealTikTokScanner()
+            self.fb_scanner = RealFacebookAdsScanner()
+            self.shopee_scanner = RealShopeeScanner()
+
+            # Authenticate all APIs
+            self._authenticate_apis()
+        else:
+            print("📊 Using MOCK data for trend scanning")
+            self.tiktok_scanner = TikTokScanner()
+            self.fb_scanner = FacebookAdsScanner()
+            self.shopee_scanner = ShopeeScanner()
+
+    def _check_api_credentials(self) -> bool:
+        """Check if all required API credentials are available"""
+        required_env_vars = [
+            'TIKTOK_CLIENT_KEY', 'TIKTOK_CLIENT_SECRET',
+            'FACEBOOK_ACCESS_TOKEN', 'FACEBOOK_APP_ID', 'FACEBOOK_APP_SECRET',
+            'SHOPEE_PARTNER_ID', 'SHOPEE_PARTNER_KEY', 'SHOPEE_SHOP_ID'
+        ]
+
+        missing = [var for var in required_env_vars if not os.getenv(var)]
+        if missing:
+            print(f"❌ Missing API credentials: {', '.join(missing)}")
+            return False
+        return True
+
+    def _authenticate_apis(self):
+        """Authenticate all API connections"""
+        print("🔐 Authenticating APIs...")
+
+        apis_authenticated = 0
+
+        if hasattr(self.tiktok_scanner, 'authenticate') and self.tiktok_scanner.authenticate():
+            apis_authenticated += 1
+            print("✅ TikTok API authenticated")
+
+        if hasattr(self.fb_scanner, 'authenticate') and self.fb_scanner.authenticate():
+            apis_authenticated += 1
+            print("✅ Facebook API authenticated")
+
+        if hasattr(self.shopee_scanner, 'authenticate') and self.shopee_scanner.authenticate():
+            apis_authenticated += 1
+            print("✅ Shopee API authenticated")
+
+        print(f"🔗 {apis_authenticated}/3 APIs authenticated successfully")
 
     def calculate_trend_score(self, tiktok_data: Dict, fb_data: Dict, shopee_data: Dict) -> int:
         """Calculate trend score based on multiple signals"""

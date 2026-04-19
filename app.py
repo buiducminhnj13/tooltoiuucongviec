@@ -2,6 +2,14 @@ from flask import Flask, render_template, send_from_directory
 import os
 from trend_scanner import trend_analyzer
 
+# Load environment variables from .env file
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+    print("✅ Environment variables loaded from .env")
+except ImportError:
+    print("⚠️  python-dotenv not installed, using system environment variables")
+
 app = Flask(__name__, static_folder='product-optimizer-website', static_url_path='')
 
 @app.route('/')
